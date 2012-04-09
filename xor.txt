@@ -5,21 +5,18 @@ Basic XOR test of the good/bad nn trainer
 Introduction
 ------------
 
-The premise here is pretty simple. Instead of defining a set of
-"correct" input/output pairs for training, we create a set of "opposite"
-outputs and use "good/bad" to trigger learning. If performing an output
-is "good" then the network is trained with the output it just performed.
-If performing an output is "bad" the network is trained with the
-opposite to the output.
-
+The premise here is pretty simple. Instead of defining a set of "correct"
+input/output pairs for training, we simple let the trainer know if the result
+is "good" or "bad", "bad" leading to re-training until the output is "good".
 
 In action
 ---------
 
-Firstly, we need a neural network to calculate the XOR function
+Firstly, we need a neural network to calculate the XOR function - 2 inputs of
+range 0-1, 2 hidden neurons and 1 output neuron.
 
-    >>> import libs.nn.backpropnn
-    >>> nn = libs.nn.backpropnn.NN(2, 2, 1)
+    >>> import neurolab
+    >>> nn = neurolab.net.newff([[0, 1], [0, 1]],[2, 1])
 
 Now we need a trainer
 
@@ -30,8 +27,10 @@ This neural network doesn't do XOR correctly, so lets train it. Firstly
 we train on 0, 0 and show the memory as we go.
 
     >>> input = (0, 0)
-    >>> t.getoutput(input)
-    (0,)
+    >>> _ = t.getoutput(input)
+
+    >>> while t.bad() != (0,):
+    ...     pass
 
     >>> t.good()
     >>> t.memory
@@ -43,17 +42,10 @@ we train on 0, 0 and show the memory as we go.
 Then on 0, 1
 
     >>> input = (0, 1)
-    >>> t.getoutput(input)
-    (0,)
+    >>> _ = t.getoutput(input)
 
-    >>> t.bad()
-    (0,)
-
-    >>> t.bad()
-    (0,)
-
-    >>> t.bad()
-    (1,)
+    >>> while t.bad() != (1,):
+    ...     pass
 
     >>> t.good()
     >>> t.memory
@@ -65,14 +57,10 @@ Then on 0, 1
 Then 1, 0
 
     >>> input = (1, 0)
-    >>> t.getoutput(input)
-    (0,)
+    >>> _ = t.getoutput(input)
 
-    >>> t.bad()
-    (0,)
-
-    >>> t.bad()
-    (1,)
+    >>> while t.bad() != (1,):
+    ...     pass
 
     >>> t.good()
     >>> t.getoutput()
@@ -81,20 +69,10 @@ Then 1, 0
 Then 1, 1
 
     >>> input = (1, 1)
-    >>> t.getoutput(input)
-    (1,)
+    >>> _ = t.getoutput(input)
 
-    >>> t.bad()
-    (1,)
-
-    >>> t.bad()
-    (1,)
-
-    >>> import random
-    >>> random.seed(93)
-
-    >>> t.bad()
-    (0,)
+    >>> while t.bad() != (0,):
+    ...     pass
 
     >>> t.good()
     >>> t.memory

@@ -22,5 +22,8 @@ This has been developed/tested on:
  * Ubuntu 12.04
  * Python 2.7
 
+The neural network used for trainer testing is from:
+http://code.google.com/p/neurolab/
+
 For tests to pass, requires the "robosim" module from
 https://github.com/thisismyrobot/RoboSim

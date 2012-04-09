@@ -19,8 +19,8 @@ In action
 
 Firstly, we need a neural network to calculate the outputs
 
-    >>> import libs.nn.backpropnn
-    >>> nn = libs.nn.backpropnn.NN(2, 5, 4)
+    >>> import neurolab
+    >>> nn = neurolab.net.newff([[0, 1], [0, 1]],[5, 4])
 
 For the trainer we need to know which outputs are "state-sets" - ie, at most
 one can be "on" at once - this stops invalid mutations happening, speeding up
@@ -40,46 +40,34 @@ Firstly we need to be sure that it is not already pre-programmed - no bumpers
 pressed should mean go forward (0, 0, 1, 0).
 
     >>> input = (0, 0)
-    >>> t.getoutput(input)
-    (0, 0, 1, 0)
+    >>> _ = t.getoutput(input)
 
 Now we train it, accepting when it is "good" - in this instance moving forward
 at all when there's no bumpers being pressed.
 
-    >>> i = 1
     >>> while t.bad()[2] != 1:
-    ...     i += 1
-    >>> i
-    1
+    ...     pass
 
-        >>> t.good()
+    >>> t.good()
 
 If we hit a wall with the left bumper, forward right is ok, as is reversing to
 the left.
 
     >>> input = (1, 0)
-    >>> t.getoutput(input)
-    (0, 0, 1, 0)
+    >>> _ = t.getoutput(input)
 
-    >>> i = 0
     >>> while t.bad() not in ((0, 1, 1, 0), (1, 0, 0, 1)):
-    ...     i += 1
-    >>> i
-    17
+    ...     pass
 
     >>> t.good()
 
 The opposite is the case with the right bumper
 
     >>> input = (0, 1)
-    >>> t.getoutput(input)
-    (0, 0, 1, 0)
+    >>> _ = t.getoutput(input)
 
-    >>> i = 0
     >>> while t.bad() not in ((1, 0, 1, 0), (0, 1, 0, 1)):
-    ...     i += 1
-    >>> i
-    19
+    ...     pass
 
     >>> t.good()
 
@@ -87,32 +75,24 @@ And if we hit the wall with both bumpers we want reverse and possibly a
 direction.
 
     >>> input = (1, 1)
-    >>> t.getoutput(input)
-    (1, 1, 1, 0)
+    >>> _ = t.getoutput(input)
 
-    >>> i = 0
     >>> while t.bad()[3] != 1:
-    ...     i += 1
-    >>> i
-    35
+    ...     pass
 
     >>> t.good()
 
-The memory should be programmed now
-
-    >>> t.memory
-    deque([((0, 0), (0, 0, 1, 0)), ((1, 0), (0, 1, 1, 0)), ((0, 1), (1, 0, 1, 0)), ((1, 1), (0, 0, 0, 1))], maxlen=10)
-
 Now we can test it all at once
 
-    >>> t.getoutput((0, 0))
-    (0, 0, 1, 0)
+    >>> t.getoutput((0, 0)) == t.memory[0][1]
+    True
 
-    >>> t.getoutput((0, 1))
-    (1, 0, 1, 0)
+    >>> t.getoutput((1, 0)) == t.memory[1][1]
+    True
 
-    >>> t.getoutput((1, 0))
-    (0, 1, 1, 0)
+    >>> t.getoutput((0, 1)) == t.memory[2][1]
+    True
 
-    >>> t.getoutput((1, 1))
-    (0, 0, 0, 1)
+    >>> t.getoutput((1, 1)) == t.memory[3][1]
+    True
+
