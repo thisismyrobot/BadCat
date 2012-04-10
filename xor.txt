@@ -65,10 +65,23 @@ we train on 0, 0 and show the memory as we go.
     >>> input = (0, 0)
     >>> _ = t.getoutput(input)
 
+    >>> t._mutatemomentum
+    0.75
+
+    >>> i = 0
     >>> while t.bad() != (0,):
-    ...     pass
+    ...     i += 1
+    >>> i
+    0
+
+    >>> t._mutatemomentum == max(0, 0.75 - (0.1 * (i + 1)))
+    True
 
     >>> t.good()
+
+    >>> t._mutatemomentum
+    0.75
+
     >>> t._memory
     deque([((0, 0), (0,))], maxlen=10)
 

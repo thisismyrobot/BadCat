@@ -15,7 +15,7 @@ def normalise(value):
         return 1
     return 0
 
-def mutate(l, freeoutputs, statesets, seed=None, momentum=0.75):
+def mutate(l, freeoutputs, statesets, momentum, seed=None):
 
     if seed is not None:
         random.seed(seed)

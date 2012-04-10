@@ -73,7 +73,7 @@ class Trainer(object):
             good()
 
     """
-    def __init__(self, lt, memorysize, statesets):
+    def __init__(self, lt, memorysize, statesets, mutatemomentum=0.75):
         """ Creates and sets up a trainer.
 
             Arguments:
@@ -87,7 +87,8 @@ class Trainer(object):
             raise Exception("Learning tools must be wrapped in LearningToolAdapter instances")
         self._lt = lt
 
-        # (input, target) store
+        self._mutatemomentum = self._MUTATEMOMENTUMSTART = 0.75
+
         self._memory = collections.deque([], memorysize)
         self._statesets = statesets
         self._freeoutputs = tools.notinranges(self._lt.co, self._statesets)
@@ -107,12 +108,16 @@ class Trainer(object):
         """ Add the input-output mapping to a memory buffer for training, do
             the training
         """
+        self._mutatemomentum = self._MUTATEMOMENTUMSTART
         self._memory.append((self._lastinput,
                              tuple(map(tools.normalise, self._lastoutput))))
 
         self._lt.learn([i for i, o in self._memory],
                        [o for i, o in self._memory])
 
-    def bad(self):
-        tools.mutate(self._lastoutput, self._freeoutputs, self._statesets)
+    def bad(self, mutatestep=0.1):
+        tools.mutate(self._lastoutput, self._freeoutputs, self._statesets,
+                     self._mutatemomentum)
+        if self._mutatemomentum >= mutatestep:
+            self._mutatemomentum -= mutatestep
         return tuple(map(tools.normalise, self._lastoutput))
