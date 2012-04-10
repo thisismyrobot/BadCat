@@ -31,7 +31,7 @@ prevent hardware damage - eg with the use of an H-Bridge for forward-back.
 
     >>> import trainer
     >>> statesets = ((0, 1), (2, 3))
-    >>> t = trainer.Trainer(nn, 10, statesets, 0)
+    >>> t = trainer.Trainer(nn, 10, statesets)
 
     >>> t._freeoutputs
     []
@@ -84,15 +84,15 @@ direction.
 
 Now we can test it all at once
 
-    >>> t.getoutput((0, 0)) == t.memory[0][1]
+    >>> t.getoutput((0, 0)) == t._memory[0][1]
     True
 
-    >>> t.getoutput((1, 0)) == t.memory[1][1]
+    >>> t.getoutput((1, 0)) == t._memory[1][1]
     True
 
-    >>> t.getoutput((0, 1)) == t.memory[2][1]
+    >>> t.getoutput((0, 1)) == t._memory[2][1]
     True
 
-    >>> t.getoutput((1, 1)) == t.memory[3][1]
+    >>> t.getoutput((1, 1)) == t._memory[3][1]
     True
 

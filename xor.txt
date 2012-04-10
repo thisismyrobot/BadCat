@@ -21,7 +21,7 @@ range 0-1, 2 hidden neurons and 1 output neuron.
 Now we need a trainer
 
     >>> import trainer
-    >>> t = trainer.Trainer(nn, 10, (), 0)
+    >>> t = trainer.Trainer(nn, 10, ())
 
 This neural network doesn't do XOR correctly, so lets train it. Firstly
 we train on 0, 0 and show the memory as we go.
@@ -33,7 +33,7 @@ we train on 0, 0 and show the memory as we go.
     ...     pass
 
     >>> t.good()
-    >>> t.memory
+    >>> t._memory
     deque([((0, 0), (0,))], maxlen=10)
 
     >>> t.getoutput()
@@ -48,7 +48,7 @@ Then on 0, 1
     ...     pass
 
     >>> t.good()
-    >>> t.memory
+    >>> t._memory
     deque([((0, 0), (0,)), ((0, 1), (1,))], maxlen=10)
 
     >>> t.getoutput()
@@ -75,7 +75,7 @@ Then 1, 1
     ...     pass
 
     >>> t.good()
-    >>> t.memory
+    >>> t._memory
     deque([((0, 0), (0,)), ((0, 1), (1,)), ((1, 0), (1,)), ((1, 1), (0,))], maxlen=10)
 
     >>> t.getoutput()
