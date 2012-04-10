@@ -18,10 +18,46 @@ range 0-1, 2 hidden neurons and 1 output neuron.
     >>> import neurolab
     >>> nn = neurolab.net.newff([[0, 1], [0, 1]],[2, 1])
 
-Now we need a trainer
+To train the network the trainer needs to know how to communicate with it, so
+we make an adapter for the neurolab network. The adapter needs to be properly
+defined else it throws errors
 
     >>> import trainer
+
+    >>> class AdaptNeurolabNN(trainer.LearningToolAdapter):
+    ...     pass
+    >>> ann = AdaptNeurolabNN(nn)
+    Traceback (most recent call last):
+    ...
+    TypeError: Can't ... with abstract methods ci, co, learn, process
+
+    >>> class AdaptNeurolabNN(trainer.LearningToolAdapter):
+    ...
+    ...     @property
+    ...     def ci(self):
+    ...         return self._lt.ci
+    ...
+    ...     @property
+    ...     def co(self):
+    ...         return self._lt.co
+    ...
+    ...     def learn(self, inputs, outputs):
+    ...         self._lt.train(inputs, outputs, show=None, epochs=1000)
+    ...
+    ...     def process(self, input):
+    ...         return self._lt.step(input)
+
+Now we can wrap (adapt) the neural network
+
+    >>> ann = AdaptNeurolabNN(nn)
+
+Now we need a trainer, which complains if we don't pass it an adapted nn.
+
     >>> t = trainer.Trainer(nn, 10, ())
+    Traceback (most recent call last):
+    ...
+    Exception: Learning tools must be wrapped in LearningToolAdapter instances
+    >>> t = trainer.Trainer(ann, 10, ())
 
 This neural network doesn't do XOR correctly, so lets train it. Firstly
 we train on 0, 0 and show the memory as we go.

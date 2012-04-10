@@ -22,6 +22,27 @@ Firstly, we need a neural network to calculate the outputs
     >>> import neurolab
     >>> nn = neurolab.net.newff([[0, 1], [0, 1]],[5, 4])
 
+And an adapter
+
+    >>> import trainer
+    >>> class AdaptNeurolabNN(trainer.LearningToolAdapter):
+    ...
+    ...     @property
+    ...     def ci(self):
+    ...         return self._lt.ci
+    ...
+    ...     @property
+    ...     def co(self):
+    ...         return self._lt.co
+    ...
+    ...     def learn(self, inputs, outputs):
+    ...         self._lt.train(inputs, outputs, show=None, epochs=1000)
+    ...
+    ...     def process(self, input):
+    ...         return self._lt.step(input)
+
+    >>> ann = AdaptNeurolabNN(nn)
+
 For the trainer we need to know which outputs are "state-sets" - ie, at most
 one can be "on" at once - this stops invalid mutations happening, speeding up
 the learning process. The numbers are output indexes covering a span. In this
@@ -29,9 +50,8 @@ instance they stop forward and reverse being on at the same time as well as
 left and right being chosen at the same time. These may also be used to
 prevent hardware damage - eg with the use of an H-Bridge for forward-back.
 
-    >>> import trainer
     >>> statesets = ((0, 1), (2, 3))
-    >>> t = trainer.Trainer(nn, 10, statesets)
+    >>> t = trainer.Trainer(ann, 10, statesets)
 
     >>> t._freeoutputs
     []

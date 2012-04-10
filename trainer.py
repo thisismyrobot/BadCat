@@ -16,12 +16,49 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+from abc import ABCMeta, abstractmethod, abstractproperty
 import collections
+import neurolab.core
 import tools
+
+class LearningToolAdapter:
+    """ Allows learning tools to be adapted to the interface that the trainer
+        expects. The learning tool object to be adapted is retrieved by
+        self._lt.
+    """
+    __metaclass__ = ABCMeta
+
+    def __init__(self, lt):
+        self._lt = lt
+
+    @abstractproperty
+    def ci(self):
+        """ Returns a count of input points
+        """
+        pass
+
+    @abstractproperty
+    def co(self):
+        """ Returns a count of output points
+        """
+        pass
+
+    @abstractmethod
+    def learn(self, inputs, outputs):
+        """ Given lists of inputs and outputs, train away.
+        """
+        pass
+
+    @abstractmethod
+    def process(self, input):
+        """ Given an input list, return an output list.
+        """
+        pass
 
 
 class Trainer(object):
-    """ Trains a neural network using "good" or "bad" feedback.
+    """ Trains a learning tool (eg neural network) using "good" or "bad"
+        feedback.
 
         Order of ops:
 
@@ -32,46 +69,55 @@ class Trainer(object):
             # a new output until it results in "good"
             [bad()]
 
-            # call good() to save that output for training
+            # call good() to save that output and train with it.
             good()
 
     """
+    def __init__(self, lt, memorysize, statesets):
+        """ Creates and sets up a trainer.
 
-    def __init__(self, nn, memorysize, statesets):
-        self.nn = nn
+            Arguments:
+             * lt = a learning tool object with the interface of
+               LearningToolAdapter.
+             * the size of the memory of recent "learnings".
+             * the set of ranges of points that only one can fire at once in.
+
+        """
+        if not isinstance(lt, LearningToolAdapter):
+            raise Exception("Learning tools must be wrapped in LearningToolAdapter instances")
+        self._lt = lt
 
         # (input, target) store
         self._memory = collections.deque([], memorysize)
         self._statesets = statesets
 
-        self._lastinput = [0] * self.nn.ci
-        self._lastoutput = [0] * self.nn.co
+        self._lastinput = [0] * self._lt.ci
+        self._lastoutput = [0] * self._lt.co
 
     @property
     def _freeoutputs(self):
         stateoutputs = []
         for sset in self._statesets:
             stateoutputs.extend(range(sset[0], sset[1] + 1))
-        return [i for i in range(self.nn.co) if i not in stateoutputs]
+        return [i for i in range(self._lt.co) if i not in stateoutputs]
 
     def getoutput(self, input=None):
         if input is None:
             input = self._lastinput
         else:
             self._lastinput = input
-        self._lastoutput = self.nn.step(input)
+        self._lastoutput = self._lt.process(input)
         return tuple(map(tools.normalise, self._lastoutput))
 
-    def good(self, epochs=500):
+    def good(self):
         """ Add the input-output mapping to a memory buffer for training, do
             the training
         """
         self._memory.append((self._lastinput,
                              tuple(map(tools.normalise, self._lastoutput))))
 
-        self.nn.train([i for i, o in self._memory],
-                      [o for i, o in self._memory],
-                      show=None, epochs=epochs)
+        self._lt.learn([i for i, o in self._memory],
+                       [o for i, o in self._memory])
 
     def bad(self):
         tools.mutate(self._lastoutput, self._freeoutputs, self._statesets)
