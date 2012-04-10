@@ -90,16 +90,10 @@ class Trainer(object):
         # (input, target) store
         self._memory = collections.deque([], memorysize)
         self._statesets = statesets
+        self._freeoutputs = tools.notinranges(self._lt.co, self._statesets)
 
         self._lastinput = [0] * self._lt.ci
         self._lastoutput = [0] * self._lt.co
-
-    @property
-    def _freeoutputs(self):
-        stateoutputs = []
-        for sset in self._statesets:
-            stateoutputs.extend(range(sset[0], sset[1] + 1))
-        return [i for i in range(self._lt.co) if i not in stateoutputs]
 
     def getoutput(self, input=None):
         if input is None:

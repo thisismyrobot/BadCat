@@ -30,3 +30,12 @@ def mutate(l, freeoutputs, statesets, seed=None, momentum=0.75):
             l[random.randint(ss, sf)] = random.random()
 
     return l
+
+def notinranges(length, ranges):
+    """ Returns list of indexes between 0 and length where indexes not in
+        list of ranges passed in.
+    """
+    indexes_in_a_range = []
+    for rs,rf in ranges:
+        indexes_in_a_range.extend(range(rs, rf + 1))
+    return [i for i in range(length) if i not in indexes_in_a_range]
