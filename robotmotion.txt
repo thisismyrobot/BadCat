@@ -1,0 +1,98 @@
+Testing with a mobile robot
+===========================
+
+We will use my robosim module to test the learning algorithm in "real time".
+
+https://raw.github.com/thisismyrobot/RoboSim/master/robosim.py
+
+Sim setup
+---------
+
+    >>> amap = [[0, 0, 0],
+    ...         [0, 0, 0],
+    ...         [0, 0, 0]]
+
+    >>> import robosim
+    >>> s = robosim.Sim(amap)
+
+    >>> robot = robosim.Robot(1, 1)
+    >>> s.setrobot(robot)
+
+"Brain" setup
+-------------
+
+Two sensors, two outputs (move, turn)
+
+    >>> import neurolab
+    >>> nn = neurolab.net.newff([[0, 1], [0, 1]],[5, 2])
+
+    >>> import trainer
+    >>> class AdaptNeurolabNN(trainer.LearningToolAdapter):
+    ...
+    ...     @property
+    ...     def ci(self):
+    ...         return self._lt.ci
+    ...
+    ...     @property
+    ...     def co(self):
+    ...         return self._lt.co
+    ...
+    ...     def learn(self, inputs, outputs):
+    ...         self._lt.train(inputs, outputs, show=None, epochs=1000)
+    ...
+    ...     def process(self, input):
+    ...         return self._lt.step(input)
+
+    >>> ann = AdaptNeurolabNN(nn)
+
+Trainer setup
+-------------
+
+We can't go left and right at once, nor can we go forward and reverse at once:
+
+    >>> statesets = ()
+
+    >>> t = trainer.Trainer(ann, 20, statesets)
+
+Simulation
+----------
+
+    >>> import tools
+    >>> def domotion(robot, motion):
+    ...     if motion[0] == 1:
+    ...         robot.turn(2)
+    ...     if motion[1] == 1:
+    ...         robot.move(1)
+
+    >>> locs = []
+    >>> for i in range(15):
+    ...     # map the sensor info to inputs - 1 = both sensors hit
+    ...     inputs = [1 if h else 0 for h in s.robot.hit]
+    ...
+    ...     # store a pre-location position
+    ...     lastxy = (s.robot.x, s.robot.y)
+    ...
+    ...     # determine an action
+    ...     motion = t.getoutput(inputs)
+    ...
+    ...     # perform the action
+    ...     domotion(s.robot, motion)
+    ...
+    ...     # if "bad", try alternatives - "bad" if not moved last time, or not exploring
+    ...     while (s.robot.x, s.robot.y) == lastxy or locs.count((s.robot.x, s.robot.y)) > 2:
+    ...         domotion(s.robot, t.bad())
+    ...
+    ...     locs.append((s.robot.x, s.robot.y))
+    ...
+    ...     # train with "good" alternative
+    ...     t.good()
+
+To be a success, the robot needs to have moved
+
+    >>> len(locs)
+    15
+
+And explored
+
+    >>> len(set(locs)) > 6
+    True

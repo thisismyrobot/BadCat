@@ -18,8 +18,8 @@
 
 from abc import ABCMeta, abstractmethod, abstractproperty
 import collections
-import neurolab.core
 import tools
+
 
 class LearningToolAdapter:
     """ Allows learning tools to be adapted to the interface that the trainer
@@ -96,12 +96,25 @@ class Trainer(object):
         self._lastinput = [0] * self._lt.ci
         self._lastoutput = [0] * self._lt.co
 
+    def _valid(self, output):
+        """ Is an output valid, considering the statesets. For each set, if
+            more than one value is not equal to zero, the output is invalid.
+        """
+        for ss, sf in self._statesets:
+            l = map(tools.normalise, output[ss:sf + 1])
+            if sum(l) > 1:
+                return False
+        return True
+
     def getoutput(self, input=None):
-        if input is None:
-            input = self._lastinput
-        else:
+        if input is not None:
             self._lastinput = input
-        self._lastoutput = self._lt.process(input)
+
+        self._lastoutput = self._lt.process(self._lastinput)
+
+        while not self._valid(self._lastoutput):
+            self.bad()
+
         return tuple(map(tools.normalise, self._lastoutput))
 
     def good(self):
@@ -109,15 +122,15 @@ class Trainer(object):
             the training
         """
         self._mutatemomentum = self._MUTATEMOMENTUMSTART
-        self._memory.append((self._lastinput,
-                             tuple(map(tools.normalise, self._lastoutput))))
-
-        self._lt.learn([i for i, o in self._memory],
-                       [o for i, o in self._memory])
+        io = (self._lastinput, tuple(map(tools.normalise, self._lastoutput)))
+        if io not in self._memory:
+            self._memory.append(io)
+            self._lt.learn([i for i, o in self._memory],
+                           [o for i, o in self._memory])
 
     def bad(self, mutatestep=0.1):
-        tools.mutate(self._lastoutput, self._freeoutputs, self._statesets,
-                     self._mutatemomentum)
+        self._lastoutput = tools.mutate(self._lastoutput, self._freeoutputs,
+                                        self._statesets, self._mutatemomentum)
         if self._mutatemomentum >= mutatestep:
             self._mutatemomentum -= mutatestep
         return tuple(map(tools.normalise, self._lastoutput))
