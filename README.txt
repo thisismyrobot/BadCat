@@ -4,15 +4,30 @@ The Gist
 Finally dev'ing a hunch - can you train a Neural Network using just "good" or
 "bad" as feedback?
 
+Essentially, I am applying the *bucket-brigade technique* to a neural network,
+instead of (as is traditionally done) to an Expert System.
+
 Progress
 ========
 
 Trying out each of the following techniques to see which seems to work ok:
 
+Tried
+-----
+
  * If bad, train with inversion of last output.
    * Flawed - works with XOR but not with anything more complex.
+
+Current
+-------
+
  * If bad, mutate last output until good and then train.
-   * Current status - a bit brute-force so will explore gentler versions next.
+   * Current  - a bit brute-force so will explore gentler versions next.
+
+Future
+------
+
+ * Above, but with levels of "bad" and "good" instead of True/False.
 
 Requirements
 ============
